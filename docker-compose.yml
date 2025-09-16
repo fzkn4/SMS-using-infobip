@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+  web:
+    build: .
+    ports:
+      - "8080:80"
+    environment:
+      - INFOBIP_API_KEY=${INFOBIP_API_KEY}
+      - INFOBIP_BASE_URL=${INFOBIP_BASE_URL}
+    volumes:
+      - .:/var/www/html
+    restart: unless-stopped
+    container_name: infobip-sms-webapp

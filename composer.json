@@ -1,0 +1,20 @@
+{
+  "name": "infobip/sms-webapp",
+  "description": "Infobip SMS Webapp with React JS frontend",
+  "type": "project",
+  "require": {
+    "php": ">=8.3",
+    "infobip/infobip-api-php-client": "^6.2.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "src/"
+    }
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "sort-packages": true
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}

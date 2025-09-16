@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Infobip SMS Sender</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, sans-serif;
+        background: linear-gradient(
+          135deg,
+          #0f0f0f 0%,
+          #1a1a1a 50%,
+          #0f0f0f 100%
+        );
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        color: #ffffff;
+        position: relative;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(
+            circle at 20% 80%,
+            rgba(16, 185, 129, 0.1) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 80% 20%,
+            rgba(59, 130, 246, 0.1) 0%,
+            transparent 50%
+          );
+        pointer-events: none;
+        z-index: -1;
+      }
+
+      .container {
+        background: #1a1a1a;
+        border-radius: 16px;
+        border: 1px solid #2d2d2d;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5),
+          0 0 0 1px rgba(255, 255, 255, 0.05);
+        padding: 40px;
+        max-width: 500px;
+        width: 100%;
+        position: relative;
+        backdrop-filter: blur(10px);
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+        position: relative;
+      }
+
+      .header h1 {
+        color: #ffffff;
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .header p {
+        color: #a0a0a0;
+        font-size: 16px;
+      }
+
+      .form-group {
+        margin-bottom: 24px;
+      }
+
+      .form-group label {
+        display: block;
+        color: #ffffff;
+        font-weight: 500;
+        margin-bottom: 8px;
+        font-size: 14px;
+      }
+
+      .form-group input,
+      .form-group textarea {
+        width: 100%;
+        padding: 14px 16px;
+        background: #2d2d2d;
+        border: 1px solid #404040;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        font-family: inherit;
+        color: #ffffff;
+      }
+
+      .form-group input::placeholder,
+      .form-group textarea::placeholder {
+        color: #6b7280;
+      }
+
+      .form-group input:focus,
+      .form-group textarea:focus {
+        outline: none;
+        border-color: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        background: #333333;
+      }
+
+      .form-group textarea {
+        resize: vertical;
+        min-height: 100px;
+      }
+
+      .btn {
+        width: 100%;
+        padding: 14px;
+        background: #10b981;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-family: inherit;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .btn:hover {
+        background: #059669;
+        transform: translateY(-1px);
+        box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3);
+      }
+
+      .btn:active {
+        transform: translateY(0);
+      }
+
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+        background: #6b7280;
+      }
+
+      .preview-btn {
+        background: #374151;
+        color: #ffffff;
+        border: 1px solid #4b5563;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-family: inherit;
+      }
+
+      .preview-btn:hover {
+        background: #4b5563;
+        border-color: #6b7280;
+      }
+
+      .preview-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .status {
+        margin-top: 20px;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-weight: 500;
+        text-align: center;
+        border: 1px solid;
+      }
+
+      .status.success {
+        background: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+        border-color: #10b981;
+      }
+
+      .status.error {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border-color: #ef4444;
+      }
+
+      .status.loading {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+        border-color: #3b82f6;
+      }
+
+      .loading-spinner {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spin 1s ease-in-out infinite;
+        margin-right: 8px;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .phone-input {
+        position: relative;
+      }
+
+      .phone-input::before {
+        content: "+";
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6b7280;
+        font-weight: 500;
+        z-index: 1;
+      }
+
+      .phone-input input {
+        padding-left: 30px;
+      }
+
+      .char-count {
+        color: #6b7280;
+        font-size: 12px;
+      }
+
+      .char-count.warning {
+        color: #f59e0b;
+      }
+
+      .char-count.danger {
+        color: #ef4444;
+      }
+
+      .form-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 8px;
+      }
+
+      .icon {
+        width: 20px;
+        height: 20px;
+        display: inline-block;
+      }
+
+      @media (max-width: 600px) {
+        .container {
+          padding: 30px 20px;
+          margin: 10px;
+        }
+
+        .header h1 {
+          font-size: 24px;
+        }
+      }
+
+      /* Custom scrollbar for dark theme */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: #2d2d2d;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: #4b5563;
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: #6b7280;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>SMS Sender</h1>
+        <p>Send SMS messages via Infobip API</p>
+      </div>
+
+      <form id="smsForm">
+        <div class="form-group">
+          <label for="phoneNumber">Phone Number</label>
+          <div class="phone-input">
+            <input
+              type="tel"
+              id="phoneNumber"
+              name="phoneNumber"
+              placeholder="1234567890"
+              required
+              pattern="[0-9+\-\s\(\)]+"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="senderId">Sender ID (Optional)</label>
+          <input
+            type="text"
+            id="senderId"
+            name="senderId"
+            placeholder="InfoSMS"
+            maxlength="11"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="message">Message</label>
+          <textarea
+            id="message"
+            name="message"
+            placeholder="Enter your SMS message here..."
+            required
+            maxlength="160"
+          ></textarea>
+          <div class="form-footer">
+            <small class="char-count" id="charCountText">
+              <span id="charCount">0</span>/160 characters
+            </small>
+            <button type="button" id="previewBtn" class="preview-btn">
+              Preview SMS
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn" id="sendBtn">
+          <span class="icon">📤</span>
+          Send SMS
+        </button>
+      </form>
+
+      <div id="status" class="status" style="display: none"></div>
+    </div>
+
+    <script>
+      class SMSSender {
+        constructor() {
+          this.form = document.getElementById("smsForm");
+          this.sendBtn = document.getElementById("sendBtn");
+          this.previewBtn = document.getElementById("previewBtn");
+          this.status = document.getElementById("status");
+          this.messageInput = document.getElementById("message");
+          this.charCount = document.getElementById("charCount");
+
+          this.init();
+        }
+
+        init() {
+          this.form.addEventListener("submit", this.handleSubmit.bind(this));
+          this.previewBtn.addEventListener(
+            "click",
+            this.handlePreview.bind(this)
+          );
+          this.messageInput.addEventListener(
+            "input",
+            this.updateCharCount.bind(this)
+          );
+          this.updateCharCount();
+        }
+
+        updateCharCount() {
+          const count = this.messageInput.value.length;
+          this.charCount.textContent = count;
+          const charCountText = document.getElementById("charCountText");
+
+          if (count > 160) {
+            charCountText.className = "char-count danger";
+          } else if (count > 140) {
+            charCountText.className = "char-count warning";
+          } else {
+            charCountText.className = "char-count";
+          }
+        }
+
+        async handlePreview() {
+          const message = this.messageInput.value.trim();
+
+          if (message.length === 0) {
+            this.showStatus("Please enter a message to preview", "error");
+            return;
+          }
+
+          this.previewBtn.disabled = true;
+          this.previewBtn.textContent = "Previewing...";
+
+          try {
+            const response = await fetch("api/preview_sms.php", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                message: message,
+              }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+              const preview = data.data[0];
+              const messageCount = preview.messageCount || 1;
+              const charactersRemaining = preview.charactersRemaining || 0;
+              const characterCount = preview.characterCount || message.length;
+
+              this.showStatus(
+                `SMS Preview: ${characterCount} characters, ${messageCount} message(s), ${charactersRemaining} characters remaining`,
+                "success"
+              );
+            } else {
+              this.showStatus(`Preview error: ${data.error}`, "error");
+            }
+          } catch (error) {
+            this.showStatus(`Network error: ${error.message}`, "error");
+          } finally {
+            this.previewBtn.disabled = false;
+            this.previewBtn.textContent = "Preview SMS";
+          }
+        }
+
+        async handleSubmit(e) {
+          e.preventDefault();
+
+          const formData = new FormData(this.form);
+          const phoneNumber = formData.get("phoneNumber").replace(/\D/g, ""); // Remove non-digits
+          const senderId = formData.get("senderId") || "InfoSMS";
+          const message = formData.get("message");
+
+          // Validate phone number
+          if (phoneNumber.length < 10) {
+            this.showStatus("Please enter a valid phone number", "error");
+            return;
+          }
+
+          // Validate message
+          if (message.length === 0) {
+            this.showStatus("Please enter a message", "error");
+            return;
+          }
+
+          this.setLoading(true);
+
+          try {
+            const response = await fetch("api/send_sms.php", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                to: "+" + phoneNumber,
+                from: senderId,
+                message: message,
+              }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+              this.showStatus("SMS sent successfully!", "success");
+              this.form.reset();
+              this.updateCharCount();
+            } else {
+              this.showStatus(`Error: ${data.error}`, "error");
+            }
+          } catch (error) {
+            this.showStatus(`Network error: ${error.message}`, "error");
+          } finally {
+            this.setLoading(false);
+          }
+        }
+
+        setLoading(loading) {
+          this.sendBtn.disabled = loading;
+          if (loading) {
+            this.sendBtn.innerHTML =
+              '<span class="loading-spinner"></span>Sending...';
+          } else {
+            this.sendBtn.innerHTML = "Send SMS";
+          }
+        }
+
+        showStatus(message, type) {
+          this.status.textContent = message;
+          this.status.className = `status ${type}`;
+          this.status.style.display = "block";
+
+          // Auto-hide success messages after 5 seconds
+          if (type === "success") {
+            setTimeout(() => {
+              this.status.style.display = "none";
+            }, 5000);
+          }
+        }
+      }
+
+      // Initialize the SMS sender when the page loads
+      document.addEventListener("DOMContentLoaded", () => {
+        new SMSSender();
+      });
+    </script>
+  </body>
+</html>
