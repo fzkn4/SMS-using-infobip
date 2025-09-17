@@ -1,4 +1,4 @@
-# 📱 Infobip SMS API Implementation
+# Infobip SMS API Implementation
 
 A comprehensive demonstration of how to implement Infobip SMS API with PHP and React JS. Features a modern dark-themed web interface for sending SMS messages, real-time preview, delivery tracking, and support for international phone numbers.
 
